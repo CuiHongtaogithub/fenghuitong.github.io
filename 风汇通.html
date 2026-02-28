@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风汇通平台操作演示 - 汇丰银行联合打造</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0052FF', // 科技蓝
+                        hsbc: '#E62333',    // 汇丰红
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        dark: '#1D2939',
+                        light: '#F9FAFB',
+                        accent: '#36BFFA',
+                        neutral: {
+                            50: '#F9FAFB',
+                            100: '#F3F4F6',
+                            200: '#E5E7EB',
+                            300: '#D1D5DB',
+                            400: '#9CA3AF',
+                            500: '#6B7280',
+                            600: '#4B5563',
+                            700: '#374151',
+                            800: '#1F2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 10px 30px 0 rgba(0, 82, 255, 0.08)',
+                        'btn': '0 4px 12px rgba(0, 82, 255, 0.15)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                        'pulse-light': 'pulseLight 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseLight: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .section-padding {
+                @apply py-16 md:py-24;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1;
+            }
+            .text-balance {
+                text-wrap: balance;
+            }
+            .step-active {
+                @apply bg-primary text-white border-primary shadow-md;
+            }
+            .step-done {
+                @apply bg-success text-white border-success shadow-md;
+            }
+            .btn-disabled {
+                @apply bg-neutral-200 cursor-not-allowed text-neutral-400 hover:shadow-none hover:translate-y-0;
+            }
+            .hsbc-tag {
+                @apply bg-hsbc/10 text-hsbc text-xs px-2 py-0.5 rounded-full font-medium;
+            }
+            .hsbc-border {
+                @apply border-hsbc/10;
+            }
+            .glass-effect {
+                @apply bg-white/80 backdrop-blur-sm;
+            }
+            .text-gradient {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+            }
+        }
+        
+        /* 基础动画类 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .nav-scrolled {
+            @apply bg-white shadow-md;
+        }
+        .operation-card {
+            @apply bg-white rounded-xl p-6 shadow-card card-hover border border-neutral-100 hsbc-border relative overflow-hidden mb-6;
+        }
+        /* 卡片装饰线条 */
+        .operation-card::before {
+            content: '';
+            @apply absolute top-0 left-0 w-1.5 h-full bg-primary/80;
+        }
+        .sim-input {
+            @apply w-full px-4 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-white;
+        }
+        .sim-btn {
+            @apply px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-btn hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm;
+        }
+        .result-box {
+            @apply mt-4 p-4 rounded-lg text-sm hidden items-center border;
+        }
+        /* 标签页样式优化 */
+        .tab-btn {
+            @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5;
+        }
+        .tab-btn.active {
+            @apply bg-primary text-white shadow-btn;
+        }
+        .tab-btn:not(.active) {
+            @apply bg-neutral-50 text-neutral-700 hover:bg-neutral-100;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-neutral-50 to-neutral-100 text-dark font-sans min-h-screen">
+    <!-- 顶部装饰 -->
+    <div class="absolute top-0 right-0 w-1/2 h-64 bg-primary/5 rounded-bl-[100px] -z-10"></div>
+    <div class="absolute bottom-0 left-0 w-1/3 h-48 bg-hsbc/5 rounded-tr-[100px] -z-10"></div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div class="max-w-6xl mx-auto">
+            <!-- 页面标题区域优化 -->
+            <div class="text-center mb-12 animate-fade-in">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold mb-3 text-balance">
+                    <span class="text-gradient">风汇通</span> 智能结算平台
+                </h2>
+                <p class="text-neutral-500 max-w-2xl mx-auto text-balance">
+                    汇丰银行联合打造 | 银企直连一键结算 | 跨境资金T+0到账 | 外汇避险联动
+                </p>
+                <div class="flex items-center justify-center gap-3 mt-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> 汇丰银行直连
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
+                        <i class="fa-solid fa-check-circle mr-1"></i> 合规认证
+                    </span>
+                </div>
+            </div>
+
+            <div class="animate-slide-up">
+                <!-- 左侧平台模拟演示 - 视觉升级 -->
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="bg-primary/10 text-primary font-semibold px-4 py-1.5 rounded-full text-sm flex items-center">
+                        <i class="fa-solid fa-desktop mr-2"></i>平台模拟演示
+                    </span>
+                    <span class="hsbc-tag flex items-center">
+                        <i class="fa-solid fa-building-columns mr-1"></i>汇丰银行大额结算通道
+                    </span>
+                </div>
+                <h3 class="text-[clamp(1.3rem,3vw,1.8rem)] font-bold mt-0 mb-4 flex items-center">
+                    风汇通操作平台
+                    <span class="text-sm text-hsbc font-normal ml-2">(汇丰银行系统直连版)</span>
+                </h3>
+                <p class="text-neutral-600 mb-6 leading-relaxed">
+                    界面简洁直观，核心功能一键触达，依托汇丰银行全球跨境金融网络，让跨境金融操作化繁为简，
+                    为企业提供高效、安全、合规的资金结算解决方案。
+                </p>
+                
+                <!-- 平台模拟卡片 - 视觉升级 -->
+                <div class="bg-white rounded-2xl p-6 shadow-card border border-neutral-100 hsbc-border overflow-hidden">
+                    <div class="border border-neutral-100 rounded-xl overflow-hidden glass-effect">
+                        <!-- 窗口标题栏 -->
+                        <div class="bg-neutral-50 px-5 py-3 flex justify-between items-center border-b border-neutral-100">
+                            <div class="flex gap-3 items-center">
+                                <div class="flex gap-2">
+                                    <div class="w-3 h-3 bg-red-400 rounded-full hover:bg-red-500 transition-colors"></div>
+                                    <div class="w-3 h-3 bg-yellow-400 rounded-full hover:bg-yellow-500 transition-colors"></div>
+                                    <div class="w-3 h-3 bg-green-400 rounded-full hover:bg-green-500 transition-colors"></div>
+                                </div>
+                                <span class="text-sm font-medium text-neutral-700">风汇通资金管理系统 V2.0</span>
+                                <span class="hsbc-tag">汇丰直连</span>
+                            </div>
+                            <span class="text-xs text-neutral-400">汇丰银行系统版本：6.8.2</span>
+                        </div>
+                        
+                        <!-- 功能标签栏 -->
+                        <div class="px-5 py-3 border-b border-neutral-100 bg-white/90 flex flex-wrap gap-2.5">
+                            <!-- 一键结算按钮 -->
+                            <button id="tabSettle" class="tab-btn active flex items-center gap-1.5">
+                                <i class="fa-solid fa-money-bill-transfer"></i>一键结算
+                            </button>
+                            <button id="tabTransfer" class="tab-btn">
+                                <i class="fa-solid fa-exchange-alt mr-1"></i>资金调拨
+                            </button>
+                            <button id="tabQuery" class="tab-btn">
+                                <i class="fa-solid fa-search mr-1"></i>账户查询
+                            </button>
+                            <button id="tabSplit" class="tab-btn">
+                                <i class="fa-solid fa-chart-pie mr-1"></i>分账设置
+                            </button>
+                            <button class="tab-btn ml-auto bg-warning text-white hover:bg-warning/90 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved"></i>汇丰外汇避险
+                            </button>
+                        </div>
+                        
+                        <!-- 标签页内容区域 -->
+                        <div class="tab-content">
+                            <!-- 一键结算标签页（默认显示）- 整合了两个操作模块 -->
+                            <div id="contentSettle" class="tab-panel p-5 block animate-fade-in">
+                                <div class="flex justify-between items-center mb-5">
+                                    <h5 class="font-semibold text-neutral-800 flex items-center">
+                                        <i class="fa-solid fa-wallet text-primary mr-2"></i>汇丰银行多币种专属账户总览
+                                    </h5>
+                                    <button class="text-sm text-primary flex items-center gap-1 hover:text-primary/80 transition-colors">
+                                        刷新 <i class="fa-solid fa-sync animate-pulse-light"></i>
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                    <!-- 美元账户卡片 -->
+                                    <div class="bg-gradient-to-br from-primary/5 to-white p-4 rounded-xl border border-neutral-100 hover:border-primary/30 transition-all transform hover:scale-[1.01] shadow-sm">
+                                        <p class="text-xs text-neutral-500 mb-1.5">美元账户（汇丰大额专属结算户）</p>
+                                        <p class="font-bold text-xl text-neutral-900 mb-2">$ 12,560,890.23</p>
+                                        <p class="text-xs text-success flex items-center mt-1">
+                                            <i class="fa-solid fa-check-circle mr-1"></i> 汇丰T+0通道可结算 | 实时到账
+                                        </p>
+                                    </div>
+                                    <!-- 欧元账户卡片 -->
+                                    <div class="bg-gradient-to-br from-accent/5 to-white p-4 rounded-xl border border-neutral-100 hover:border-accent/30 transition-all transform hover:scale-[1.01] shadow-sm">
+                                        <p class="text-xs text-neutral-500 mb-1.5">欧元账户（汇丰大额专属结算户）</p>
+                                        <p class="font-bold text-xl text-neutral-900 mb-2">€ 11,892,675.18</p>
+                                        <p class="text-xs text-success flex items-center mt-1">
+                                            <i class="fa-solid fa-check-circle mr-1"></i> 汇丰欧元区直连通道 | 零手续费
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- 资金池进度条 -->
+                                <div class="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm mb-8">
+                                    <p class="font-semibold text-sm mb-3 flex items-center text-neutral-800">
+                                        汇丰全球资金池归集状态 
+                                        <span class="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">85%</span>
+                                        <span class="hsbc-tag ml-2">汇丰离岸中心支撑</span>
+                                    </p>
+                                    <div class="w-full bg-neutral-100 rounded-full h-2.5 mb-2.5 overflow-hidden">
+                                        <div class="bg-gradient-to-r from-primary to-accent h-full rounded-full transition-all duration-1500 ease-in-out" style="width: 85%"></div>
+                                    </div>
+                                    <p class="text-xs text-neutral-500">
+                                        海外分支机构×6 | 实时调拨可用 | 汇丰SWIFT专属代码：HSBCGB2L
+                                    </p>
+                                </div>
+
+                                <!-- ========== 整合进来的银企直联一键结算模块 ========== -->
+                                <div class="operation-card">
+                                    <h4 class="font-bold text-lg mb-5 flex items-center pl-4">
+                                        <i class="fa-solid fa-sync-alt text-primary text-xl mr-3"></i>
+                                        银企直联一键结算
+                                        <span class="hsbc-tag ml-2">汇丰T+0通道</span>
+                                    </h4>
+                                    <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
+                                        <div>
+                                            <label class="text-xs text-neutral-500 block mb-1.5">结算币种</label>
+                                            <select class="sim-input" id="settleCurrency">
+                                                <option value="USD">美元（USD）</option>
+                                                <option value="EUR">欧元（EUR）</option>
+                                                <option value="CNY">人民币（CNY）</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-neutral-500 block mb-1.5">结算金额</label>
+                                            <input type="text" class="sim-input" id="settleAmount" placeholder="请输入结算金额" value="500000">
+                                        </div>
+                                    </div>
+                                    <div class="mb-6 pl-4">
+                                        <label class="text-xs text-neutral-500 block mb-1.5">订单编号（财务系统同步）</label>
+                                        <input type="text" class="sim-input bg-neutral-50" value="WD-KJ-20260520001" readonly>
+                                    </div>
+                                    <ol class="space-y-5 mb-7 pl-4">
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 step-active transition-all" id="step1">1</span>
+                                            <div>
+                                                <p class="font-medium text-neutral-800">财务系统发起指令</p>
+                                                <p class="text-xs text-neutral-500 mt-1">自动同步企业财务系统订单信息，无需重复录入</p>
+                                            </div>
+                                        </li>
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all" id="step2">2</span>
+                                            <div>
+                                                <p class="font-medium text-neutral-800">系统智能合规审核</p>
+                                                <p class="text-xs text-neutral-500 mt-1">实时匹配反洗钱/外汇监管要求，自动审核</p>
+                                            </div>
+                                        </li>
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all" id="step3">3</span>
+                                            <div>
+                                                <p class="font-medium text-neutral-800">跨境资金T+0-T+1到账</p>
+                                                <p class="text-xs text-neutral-500 mt-1">大额专属通道，最快当日到账</p>
+                                            </div>
+                                        </li>
+                                    </ol>
+                                    <div class="flex gap-3 pl-4">
+                                        <button class="sim-btn bg-primary text-white hover:bg-primary/90 flex items-center gap-1.5" id="startSettle">
+                                            <i class="fa-solid fa-rocket"></i>发起资金划转
+                                        </button>
+                                        <button class="sim-btn bg-neutral-100 text-neutral-700 hover:bg-neutral-200" id="resetSettle">
+                                            <i class="fa-solid fa-refresh"></i>重置演示
+                                        </button>
+                                    </div>
+                                    <div class="result-box bg-success/5 text-success border-success/20 mt-4 pl-4" id="settleSuccess">
+                                        <i class="fa-solid fa-check-circle mr-2 text-lg"></i>
+                                        <span>结算成功！订单号WD-KJ-20260520001，500000美元已发起划转，预计T+0到账</span>
+                                    </div>
+                                </div>
+
+                                <!-- ========== 整合进来的结算+锁汇联动操作模块 ========== -->
+                                <div class="operation-card">
+                                    <h4 class="font-bold text-lg mb-5 flex items-center pl-4">
+                                        <i class="fa-solid fa-shield text-primary text-xl mr-3"></i>
+                                        结算+锁汇联动操作
+                                        <span class="hsbc-tag ml-2">汇丰外汇避险工具</span>
+                                    </h4>
+                                    <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
+                                        <div>
+                                            <label class="text-xs text-neutral-500 block mb-1.5">结算币种</label>
+                                            <select class="sim-input" id="hedgeCurrency">
+                                                <option value="USD/CNY">美元/人民币</option>
+                                                <option value="EUR/CNY">欧元/人民币</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-neutral-500 block mb-1.5">锁汇汇率阈值</label>
+                                            <input type="text" class="sim-input" id="hedgeRate" placeholder="设置预警阈值" value="7.1600">
+                                        </div>
+                                    </div>
+                                    <ol class="space-y-5 mb-7 pl-4">
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 step-active transition-all" id="hstep1">1</span>
+                                            <div>
+                                                <p class="font-medium text-neutral-800">选择订单+设置汇率阈值</p>
+                                                <p class="text-xs text-neutral-500 mt-1">绑定待结算订单，自定义汇率预警阈值</p>
+                                            </div>
+                                        </li>
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all" id="hstep2">2</span>
+                                            <div>
+                                                <p class="font-medium text-neutral-800">系统自动结算+锁汇联动</p>
+                                                <p class="text-xs text-neutral-500 mt-1">汇率触及阈值，一键完成结算与锁汇，无需单独操作</p>
+                                            </div>
+                                        </li>
+                                    </ol>
+                                    <div class="flex gap-3 pl-4">
+                                        <button class="sim-btn bg-warning text-white hover:bg-warning/90 flex items-center gap-1.5" id="startHedge">
+                                            <i class="fa-solid fa-shield-halved"></i>启动联动机制
+                                        </button>
+                                        <button class="sim-btn bg-neutral-100 text-neutral-700 hover:bg-neutral-200" id="resetHedge">
+                                            <i class="fa-solid fa-refresh"></i>重置演示
+                                        </button>
+                                    </div>
+                                    <div class="result-box bg-primary/5 text-primary border-primary/20 mt-4 pl-4" id="hedgeSuccess">
+                                        <i class="fa-solid fa-bell-check mr-2 text-lg"></i>
+                                        <span>联动设置成功！当前USD/CNY汇率7.1258，触及7.1600阈值将自动执行结算+锁汇</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 资金调拨标签页 -->
+                            <div id="contentTransfer" class="tab-panel p-5 hidden animate-fade-in">
+                                <h5 class="font-semibold mb-5 text-neutral-800 flex items-center">
+                                    <i class="fa-solid fa-exchange-alt text-primary mr-2"></i>资金调拨（汇丰直连通道）
+                                </h5>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                                    <div>
+                                        <label class="text-xs text-neutral-500 block mb-1.5">调拨类型</label>
+                                        <select class="sim-input">
+                                            <option>跨境调拨</option>
+                                            <option>币种互转</option>
+                                            <option>批量调拨</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-neutral-500 block mb-1.5">转出账户</label>
+                                        <select class="sim-input">
+                                            <option>境内美元账户（汇丰直连）</option>
+                                            <option>新加坡欧元账户（汇丰直连）</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-neutral-500 block mb-1.5">转入账户</label>
+                                        <select class="sim-input">
+                                            <option>马来西亚林吉特账户</option>
+                                            <option>越南盾账户（汇丰直连）</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 mb-4">
+                                    <button class="sim-btn bg-primary text-white hover:bg-primary/90">
+                                        <i class="fa-solid fa-paper-plane mr-1.5"></i>发起调拨
+                                    </button>
+                                    <button class="sim-btn bg-neutral-100 text-neutral-700 hover:bg-neutral-200">
+                                        <i class="fa-solid fa-history mr-1.5"></i>调拨记录
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 账户查询标签页 -->
+                            <div id="contentQuery" class="tab-panel p-5 hidden animate-fade-in">
+                                <h5 class="font-semibold mb-5 text-neutral-800 flex items-center">
+                                    <i class="fa-solid fa-search text-primary mr-2"></i>账户查询（汇丰直连实时数据）
+                                </h5>
+                                <div class="flex flex-wrap gap-3 mb-5">
+                                    <input type="date" class="sim-input w-auto">
+                                    <input type="date" class="sim-input w-auto">
+                                    <select class="sim-input w-auto">
+                                        <option>全部账户</option>
+                                        <option>美元账户</option>
+                                        <option>欧元账户</option>
+                                    </select>
+                                    <button class="sim-btn bg-primary text-white hover:bg-primary/90 whitespace-nowrap">
+                                        <i class="fa-solid fa-search mr-1.5"></i>查询
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto rounded-xl border border-neutral-100 shadow-sm">
+                                    <table class="w-full text-sm bg-white">
+                                        <thead>
+                                            <tr class="bg-neutral-50 text-neutral-600">
+                                                <th class="px-4 py-3 text-left rounded-tl-xl">账户名称</th>
+                                                <th class="px-4 py-3 text-left">币种</th>
+                                                <th class="px-4 py-3 text-right">账户余额</th>
+                                                <th class="px-4 py-3 text-center rounded-tr-xl">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                                                <td class="px-4 py-3.5">境内主账户（汇丰直连）</td>
+                                                <td class="px-4 py-3.5">人民币</td>
+                                                <td class="px-4 py-3.5 text-right font-medium">¥ 12,580,000.00</td>
+                                                <td class="px-4 py-3.5 text-center">
+                                                    <button class="text-primary text-xs hover:text-primary/80 hover:underline transition-colors">明细</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="hover:bg-neutral-50 transition-colors">
+                                                <td class="px-4 py-3.5 rounded-bl-xl">新加坡离岸账户（汇丰直连）</td>
+                                                <td class="px-4 py-3.5">美元</td>
+                                                <td class="px-4 py-3.5 text-right font-medium">$ 3,680,000.00</td>
+                                                <td class="px-4 py-3.5 text-center rounded-br-xl">
+                                                    <button class="text-primary text-xs hover:text-primary/80 hover:underline transition-colors">明细</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- 分账设置标签页 -->
+                            <div id="contentSplit" class="tab-panel p-5 hidden animate-fade-in">
+                                <h5 class="font-semibold mb-5 text-neutral-800 flex items-center">
+                                    <i class="fa-solid fa-chart-pie text-primary mr-2"></i>分账设置（汇丰直连自动分账）
+                                </h5>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                    <div>
+                                        <label class="text-xs text-neutral-500 block mb-1.5">规则名称</label>
+                                        <input type="text" class="sim-input" placeholder="如：东南亚风电项目分账规则">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-neutral-500 block mb-1.5">分账类型</label>
+                                        <select class="sim-input">
+                                            <option>按比例分账</option>
+                                            <option>按固定金额分账</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="sim-btn bg-primary text-white hover:bg-primary/90 mb-4">
+                                    <i class="fa-solid fa-save mr-1.5"></i>保存分账规则
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 底部品牌栏 -->
+                <div class="mt-16 text-center animate-fade-in" style="animation-delay: 0.4s">
+                    <div class="flex items-center justify-center gap-6 mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-building-columns text-hsbc text-xl"></i>
+                            <span class="font-medium">汇丰银行</span>
+                        </div>
+                        <div class="h-6 w-px bg-neutral-200"></div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield text-primary text-xl"></i>
+                            <span class="font-medium">金融安全认证</span>
+                        </div>
+                        <div class="h-6 w-px bg-neutral-200"></div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-globe text-accent text-xl"></i>
+                            <span class="font-medium">全球跨境结算</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-neutral-400">© 2026 风汇通平台 版权所有 | 汇丰银行技术支持</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换逻辑
+        const tabButtons = {
+            settle: document.getElementById('tabSettle'),
+            transfer: document.getElementById('tabTransfer'),
+            query: document.getElementById('tabQuery'),
+            split: document.getElementById('tabSplit')
+        };
+        
+        const tabPanels = {
+            settle: document.getElementById('contentSettle'),
+            transfer: document.getElementById('contentTransfer'),
+            query: document.getElementById('contentQuery'),
+            split: document.getElementById('contentSplit')
+        };
+        
+        // 重置所有标签按钮样式
+        function resetTabStyles() {
+            Object.values(tabButtons).forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('tab-btn');
+            });
+        }
+        
+        // 显示指定标签页
+        function showTab(tabName) {
+            // 隐藏所有面板
+            Object.values(tabPanels).forEach(panel => {
+                panel.classList.add('hidden');
+                panel.classList.remove('block');
+            });
+            
+            // 重置按钮样式
+            resetTabStyles();
+            
+            // 激活当前标签
+            tabButtons[tabName].classList.add('active');
+            
+            // 显示当前面板
+            tabPanels[tabName].classList.remove('hidden');
+            tabPanels[tabName].classList.add('block');
+            
+            // 添加淡入动画
+            tabPanels[tabName].classList.add('animate-fade-in');
+        }
+        
+        // 绑定标签点击事件
+        tabButtons.settle.addEventListener('click', () => showTab('settle'));
+        tabButtons.transfer.addEventListener('click', () => showTab('transfer'));
+        tabButtons.query.addEventListener('click', () => showTab('query'));
+        tabButtons.split.addEventListener('click', () => showTab('split'));
+
+        // 银企直联一键结算交互逻辑
+        const startSettle = document.getElementById('startSettle');
+        const resetSettle = document.getElementById('resetSettle');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const settleSuccess = document.getElementById('settleSuccess');
+        const settleAmount = document.getElementById('settleAmount');
+
+        let settleStep = 1;
+        startSettle.addEventListener('click', () => {
+            if (!settleAmount.value) {
+                alert('请输入结算金额！');
+                return;
+            }
+            
+            // 添加按钮点击动效
+            startSettle.classList.add('scale-95');
+            setTimeout(() => startSettle.classList.remove('scale-95'), 200);
+            
+            if (settleStep === 1) {
+                step1.classList.remove('step-active');
+                step1.classList.add('step-done');
+                step2.classList.add('step-active');
+                startSettle.innerHTML = '<i class="fa-solid fa-check-double"></i>开始合规审核';
+                settleStep = 2;
+            } else if (settleStep === 2) {
+                step2.classList.remove('step-active');
+                step2.classList.add('step-done');
+                step3.classList.add('step-active');
+                startSettle.innerHTML = '<i class="fa-solid fa-paper-plane"></i>发起资金划转';
+                settleStep = 3;
+            } else if (settleStep === 3) {
+                step3.classList.remove('step-active');
+                step3.classList.add('step-done');
+                startSettle.classList.add('btn-disabled');
+                startSettle.disabled = true;
+                settleSuccess.style.display = 'flex';
+                
+                // 成功提示动画
+                settleSuccess.classList.add('animate-slide-up');
+                
+                settleStep = 1;
+            }
+        });
+
+        // 重置一键结算演示
+        resetSettle.addEventListener('click', () => {
+            step1.className = 'step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 step-active transition-all';
+            step2.className = 'step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all';
+            step3.className = 'step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all';
+            startSettle.classList.remove('btn-disabled');
+            startSettle.disabled = false;
+            startSettle.innerHTML = '<i class="fa-solid fa-rocket"></i>发起资金划转';
+            settleSuccess.style.display = 'none';
+            settleSuccess.classList.remove('animate-slide-up');
+            settleStep = 1;
+        });
+
+        // 结算+锁汇联动操作交互逻辑
+        const startHedge = document.getElementById('startHedge');
+        const resetHedge = document.getElementById('resetHedge');
+        const hstep1 = document.getElementById('hstep1');
+        const hstep2 = document.getElementById('hstep2');
+        const hedgeSuccess = document.getElementById('hedgeSuccess');
+        const hedgeRate = document.getElementById('hedgeRate');
+
+        let hedgeStep = 1;
+        startHedge.addEventListener('click', () => {
+            if (!hedgeRate.value) {
+                alert('请设置锁汇汇率阈值！');
+                return;
+            }
+            
+            // 添加按钮点击动效
+            startHedge.classList.add('scale-95');
+            setTimeout(() => startHedge.classList.remove('scale-95'), 200);
+            
+            if (hedgeStep === 1) {
+                hstep1.classList.remove('step-active');
+                hstep1.classList.add('step-done');
+                hstep2.classList.add('step-active');
+                startHedge.innerHTML = '<i class="fa-solid fa-shield-halved"></i>启动联动机制';
+                hedgeStep = 2;
+            } else if (hedgeStep === 2) {
+                hstep2.classList.remove('step-active');
+                hstep2.classList.add('step-done');
+                startHedge.classList.add('btn-disabled');
+                startHedge.disabled = true;
+                hedgeSuccess.style.display = 'flex';
+                
+                // 成功提示动画
+                hedgeSuccess.classList.add('animate-slide-up');
+                
+                hedgeStep = 1;
+            }
+        });
+
+        // 重置锁汇联动演示
+        resetHedge.addEventListener('click', () => {
+            hstep1.className = 'step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 step-active transition-all';
+            hstep2.className = 'step w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 mt-0.5 border-neutral-200 transition-all';
+            startHedge.classList.remove('btn-disabled');
+            startHedge.disabled = false;
+            startHedge.innerHTML = '<i class="fa-solid fa-shield-halved"></i>启动联动机制';
+            hedgeSuccess.style.display = 'none';
+            hedgeSuccess.classList.remove('animate-slide-up');
+            hedgeStep = 1;
+        });
+        
+        // 初始化动画效果
+        document.addEventListener('DOMContentLoaded', () => {
+            // 为所有操作卡片添加渐入动画
+            const cards = document.querySelectorAll('.operation-card');
+            cards.forEach((card, index) => {
+                card.classList.add('fade-in');
+                setTimeout(() => {
+                    card.classList.add('visible');
+                }, 200 * index);
+            });
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风汇通 - 风电出海跨境金融一体化解决方案</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #f8fafc;
+            color: #2d3748;
+            line-height: 1.8;
+            font-size: 14px;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+            background-attachment: fixed;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+        ul, ol {
+            list-style: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .section {
+            padding: 4rem 0;
+        }
+        @media (max-width: 768px) {
+            .section {
+                padding: 2rem 0;
+            }
+        }
+        /* 标题样式 */
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #0f52ba;
+            margin-bottom: 3rem;
+            position: relative;
+            font-weight: 700;
+        }
+        .section-title::after {
+            content: "";
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #0f52ba, #00b49f);
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(15,82,186,0.2);
+        }
+        .sub-title {
+            font-size: 1.4rem;
+            color: #0f52ba;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 600;
+        }
+        .sub-title i {
+            color: #00b49f;
+            font-size: 1.5rem;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            text-align: center;
+            background: rgba(0,180,159,0.1);
+            border-radius: 50%;
+        }
+        .sub-sub-title {
+            font-size: 1.15rem;
+            color: #0f52ba;
+            margin: 1.5rem 0 1rem;
+            font-weight: 600;
+            padding-left: 0.5rem;
+            border-left: 3px solid #00b49f;
+        }
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: linear-gradient(90deg, #0f52ba, #1a6ed8);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(15,82,186,0.2);
+        }
+        .btn:hover {
+            background: linear-gradient(90deg, #0d47a1, #1560c7);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15,82,186,0.3);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-green {
+            background: linear-gradient(90deg, #00b49f, #00c9aa);
+            box-shadow: 0 4px 12px rgba(0,180,159,0.2);
+        }
+        .btn-green:hover {
+            background: linear-gradient(90deg, #009a88, #00b89c);
+        }
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        /* 卡片样式 */
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15,82,186,0.05);
+            padding: 2rem;
+            height: 100%;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(15,82,186,0.08);
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(15,82,186,0.12);
+        }
+        .card-border {
+            border-left: 4px solid #00b49f;
+        }
+        .card-glass {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .card-green {
+            background: linear-gradient(180deg, #f0fcf9, #e6f8f5);
+            border: 1px solid rgba(0,180,159,0.1);
+        }
+        .card-blue {
+            background: linear-gradient(180deg, #f5f9fc, #ebf3fb);
+            border: 1px solid rgba(15,82,186,0.1);
+        }
+        /* 网格布局 */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.8rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        @media (max-width: 992px) {
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* 通用样式 */
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-green {
+            color: #00b49f;
+            font-weight: 600;
+        }
+        .text-blue {
+            color: #0f52ba;
+            font-weight: 600;
+        }
+        .text-gray {
+            color: #718096;
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            background: rgba(0,180,159,0.1);
+            color: #00b49f;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 0.4rem 0.4rem 0.4rem 0;
+            font-weight: 500;
+        }
+        .tag-blue {
+            background: rgba(15,82,186,0.1);
+            color: #0f52ba;
+        }
+        /* 头部导航 */
+        .header {
+            background: linear-gradient(90deg, #0f52ba, #1a6ed8);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 4px 15px rgba(15,82,186,0.2);
+        }
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .logo i {
+            color: #00b49f;
+            font-size: 2rem;
+        }
+        .nav ul {
+            display: flex;
+            gap: 2rem;
+        }
+        .nav a {
+            font-size: 14px;
+            position: relative;
+            padding: 0.5rem 0;
+            font-weight: 500;
+        }
+        .nav a::after {
+            content: "";
+            width: 0;
+            height: 2px;
+            background: #00b49f;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        .nav a:hover::after {
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .header .container {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .nav ul {
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        /* 轮播横幅 */
+        .banner {
+            background: linear-gradient(135deg, #0f52ba 0%, #1a6ed8 50%, #257ef0 100%);
+            color: #fff;
+            padding: 6rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.2;
+        }
+        .banner h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+        .banner p {
+            font-size: 16px;
+            max-width: 900px;
+            margin: 0 auto 2.5rem;
+            opacity: 0.95;
+            line-height: 1.8;
+            position: relative;
+            z-index: 2;
+        }
+        @media (max-width: 768px) {
+            .banner {
+                padding: 4rem 0;
+            }
+            .banner h1 {
+                font-size: 2rem;
+            }
+        }
+        /* 功能列表 */
+        .func-list {
+            margin-left: 0.5rem;
+        }
+        .func-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .func-list li i {
+            color: #00b49f;
+            font-size: 14px;
+            margin-top: 0.4rem;
+            width: 16px;
+            text-align: center;
+        }
+        .func-list li p {
+            line-height: 1.7;
+        }
+        /* 层级盒子 */
+        .layer-box {
+            border: 1px solid rgba(15,82,186,0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+        .layer-box:hover {
+            border-color: rgba(0,180,159,0.2);
+            box-shadow: 0 4px 12px rgba(0,180,159,0.08);
+        }
+        .layer-box-green {
+            border-color: rgba(0,180,159,0.2);
+        }
+        .layer-title {
+            font-weight: 600;
+            color: #0f52ba;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(15,82,186,0.1);
+            font-size: 15px;
+        }
+        .layer-title-green {
+            color: #00b49f;
+            border-bottom-color: rgba(0,180,159,0.2);
+        }
+        /* 场景卡片 */
+        .scene-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            padding: 1.8rem;
+            background: linear-gradient(180deg, #fff, #fafbfc);
+            border: 1px solid rgba(15,82,186,0.08);
+            transition: all 0.3s ease;
+        }
+        .scene-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(15,82,186,0.1);
+        }
+        .scene-card h4 {
+            color: #0f52ba;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 15px;
+        }
+        .scene-card h4 i {
+            color: #00b49f;
+            font-size: 16px;
+        }
+        .scene-card-green {
+            background: linear-gradient(180deg, #f0fcf9, #f8fdfb);
+            border-color: rgba(0,180,159,0.1);
+        }
+        /* 测算模块 */
+        .calculate {
+            position: relative;
+        }
+        .calculate .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .calculate label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: #0f52ba;
+            font-size: 14px;
+        }
+        .calculate input, .calculate select {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid rgba(15,82,186,0.15);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #fff;
+            color: #2d3748;
+        }
+        .calculate input:focus, .calculate select:focus {
+            border-color: #0f52ba;
+            box-shadow: 0 0 0 3px rgba(15,82,186,0.1);
+        }
+        .calculate input::placeholder {
+            color: #cbd5e0;
+        }
+        .calculate .error-tip {
+            color: #e53e3e;
+            font-size: 12px;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .calculate .error-tip.show {
+            display: block;
+        }
+        .result-box {
+            background: linear-gradient(180deg, #f0fcf9, #e6f8f5);
+            border-radius: 8px;
+            padding: 1.8rem;
+            margin-top: 1.5rem;
+            display: none;
+            border: 1px solid rgba(0,180,159,0.15);
+        }
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-box h4 {
+            color: #0f52ba;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .result-item {
+            margin-bottom: 1rem;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(0,180,159,0.1);
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-item strong {
+            color: #0f52ba;
+            font-weight: 600;
+        }
+        .result-item .highlight {
+            color: #00b49f;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        /* 技术图标 */
+        .tech-icon {
+            font-size: 2.5rem;
+            color: #0f52ba;
+            margin-bottom: 1rem;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            text-align: center;
+            background: rgba(15,82,186,0.08);
+            border-radius: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* 案例盒子 */
+        .case-box {
+            background: #fff;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 2.5rem;
+            border: 1px solid rgba(15,82,186,0.08);
+            box-shadow: 0 4px 15px rgba(15,82,186,0.05);
+        }
+        .case-title {
+            color: #0f52ba;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .case-title i {
+            color: #00b49f;
+        }
+        /* 联系模块 */
+        .contact {
+            background: linear-gradient(135deg, #0f52ba 0%, #1a6ed8 100%);
+            color: #fff;
+            position: relative;
+        }
+        .contact::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+        .contact .section-title {
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        .contact .section-title::after {
+            background: linear-gradient(90deg, #fff, #00b49f);
+        }
+        .contact .card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        .contact .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .contact label {
+            display: block;
+            margin-bottom: 0.8rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        .contact input, .contact select, .contact textarea {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .contact input:focus, .contact select:focus, .contact textarea:focus {
+            border-color: #00b49f;
+            box-shadow: 0 0 0 3px rgba(0,180,159,0.2);
+        }
+        .contact input::placeholder, .contact textarea::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .contact textarea {
+            min-height: 120px;
+            resize: none;
+        }
+        /* 页脚 */
+        .footer {
+            background: #0d47a1;
+            color: #fff;
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 14px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer p {
+            margin-bottom: 0.8rem;
+            opacity: 0.9;
+        }
+        .footer .copyright {
+            margin-top: 1.5rem;
+            font-size: 13px;
+            opacity: 0.7;
+        }
+        /* 弹窗遮罩 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .modal-mask.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-box {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            max-width: 450px;
+            width: 95%;
+            text-align: center;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .modal-mask.show .modal-box {
+            transform: translateY(0);
+        }
+        .modal-box i {
+            font-size: 4rem;
+            color: #00b49f;
+            margin-bottom: 1rem;
+        }
+        .modal-box h3 {
+            color: #0f52ba;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        .modal-box p {
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-wind"></i>
+                <span>风汇通</span>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="#concept">产品定位</a></li>
+                    <li><a href="#function">核心功能</a></li>
+                    <li><a href="#scene">落地场景</a></li>
+                    <li><a href="#calculate">智能测算</a></li>
+                    <li><a href="#contact">需求对接</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 横幅banner -->
+    <section class="banner">
+        <div class="container">
+            <h1>风汇通 - 风电出海跨境金融一体化解决方案</h1>
+            <p>聚焦跨境经营企业（重点覆盖风电行业），打造「结算+资金+避险+ESG融资」一体化综合金融服务产品，兼顾高效性、安全性与可持续性，助力企业破解跨境资金管理与绿色发展融资痛点，实现跨境金融服务全流程数字化、合规化、智能化</p>
+            <a href="#contact" class="btn btn-green">立即对接专属客户经理</a>
+        </div>
+    </section>
+
+    <!-- 产品定位 -->
+    <section class="section" id="concept">
+        <div class="container">
+            <h2 class="section-title">产品定位 & 核心设计理念</h2>
+            <div class="grid-3">
+                <div class="card card-border card-glass">
+                    <div class="text-center">
+                        <i class="fas fa-user-friends tech-icon"></i>
+                        <h3 class="sub-title text-center" style="justify-content: center; margin-top: 0.5rem;">客户痛点为核心</h3>
+                    </div>
+                    <p class="text-center" style="margin-top: 1rem;">聚焦结算繁琐与资金管控核心痛点，拒绝功能冗余，精准解决风电企业出海全流程金融需求</p>
+                </div>
+                <div class="card card-border card-glass">
+                    <div class="text-center">
+                        <i class="fas fa-microchip tech-icon"></i>
+                        <h3 class="sub-title text-center" style="justify-content: center; margin-top: 0.5rem;">数字化赋能支撑</h3>
+                    </div>
+                    <p class="text-center" style="margin-top: 1rem;">依托金融科技，实现银企直联全流程线上化，打通企业财务与银行全球支付网络</p>
+                </div>
+                <div class="card card-border card-glass">
+                    <div class="text-center">
+                        <i class="fas fa-link tech-icon"></i>
+                        <h3 class="sub-title text-center" style="justify-content: center; margin-top: 0.5rem;">协同化服务特色</h3>
+                    </div>
+                    <p class="text-center" style="margin-top: 1rem;">打通结算-调拨-监控-避险-融资服务闭环，提供一体化综合金融解决方案</p>
+                </div>
+            </div>
+
+            <div class="section" style="padding: 3rem 0 0;">
+                <h3 class="sub-title"><i class="fas fa-sitemap"></i>产品整体架构</h3>
+                <div class="card card-blue" style="margin-bottom: 1.5rem;">
+                    <p style="margin-bottom: 1.5rem; line-height: 1.8;">紧扣ESG政策打造风电专属评级体系，精准解决风电出海运维全流程痛点，以<b class="text-blue">大数据风控、人工智能AI、区块链技术、API开放接口、银企直联系统、智能合规引擎</b>为底层技术支撑，构建「两大核心功能板块+一个融合功能模块」的产品架构。</p>
+                    <div class="grid-3">
+                        <div class="card text-center">
+                            <h4 class="text-blue" style="font-size: 1.1rem;">板块1</h4>
+                            <p style="margin-top: 1rem; line-height: 1.6;">数字化结算与<br>全球资金管理</p>
+                            <div style="margin-top: 1.5rem;">
+                                <span class="tag">多币种结算</span>
+                                <span class="tag">智能资金池</span>
+                                <span class="tag">产业链分账</span>
+                            </div>
+                        </div>
+                        <div class="card card-green text-center">
+                            <h4 class="text-green" style="font-size: 1.1rem;">融合模块</h4>
+                            <p style="margin-top: 1rem; line-height: 1.6;">动态汇率<br>风险管理</p>
+                            <div style="margin-top: 1.5rem;">
+                                <span class="tag tag-blue">实时监控</span>
+                                <span class="tag tag-blue">自动对冲</span>
+                                <span class="tag tag-blue">分阶段套保</span>
+                            </div>
+                        </div>
+                        <div class="card text-center">
+                            <h4 class="text-blue" style="font-size: 1.1rem;">板块2</h4>
+                            <p style="margin-top: 1rem; line-height: 1.6;">ESG关联<br>融资体系</p>
+                            <div style="margin-top: 1.5rem;">
+                                <span class="tag">专属评级</span>
+                                <span class="tag">差异化定价</span>
+                                <span class="tag">绿色融资矩阵</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心功能 -->
+    <section class="section" id="function">
+        <div class="container">
+            <h2 class="section-title">核心功能板块</h2>
+
+            <div class="card" style="margin-bottom: 2.5rem;">
+                <h3 class="sub-title"><i class="fas fa-exchange-alt"></i>CORE FUNCTION 01 - 数字化结算与全球资金管理</h3>
+                <p style="margin-bottom: 2rem; color: #718096; line-height: 1.8;">依托汇丰银行全球网点，打造风电行业定制化的跨境资金管理体系，实现结算-调拨-监控全流程数字化，大幅提升资金利用率、降低操作成本。</p>
+                
+                <h4 class="sub-sub-title">核心优势</h4>
+                <div class="grid-2">
+                    <div class="layer-box">
+                        <div class="layer-title">多币种大额专属结算账户</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>覆盖亚洲、欧洲、美洲核心市场本地收款/付款账户</p></li>
+                            <li><i class="fas fa-circle"></i><p>支持欧美主流币种及海外项目所在地小币种</p></li>
+                            <li><i class="fas fa-circle"></i><p>开通大额专属通道，实现跨境资金T+0-T+1快速到账</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box">
+                        <div class="layer-title">银企直联+合规化一键结算</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>打通企业财务系统与汇丰银行全球支付网络</p></li>
+                            <li><i class="fas fa-circle"></i><p>多场景全流程线上结算，替代纸质单据</p></li>
+                            <li><i class="fas fa-circle"></i><p>内置智能合规审核，实时匹配反洗钱/外汇监管要求</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box">
+                        <div class="layer-title">全球风电行业可视化资金池</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>适配风电行业的跨境资金池，支持海外分支机构资金实时归集</p></li>
+                            <li><i class="fas fa-circle"></i><p>企业资金按需自动调拨，提升资金使用效率</p></li>
+                            <li><i class="fas fa-circle"></i><p>配套闲置资金智能化理财增值服务，匹配风电项目资金周期</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box">
+                        <div class="layer-title">产业链分账与专项资金管理</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>预设各主体分账比例与支付时间，资金到账自动拆分定向支付</p></li>
+                            <li><i class="fas fa-circle"></i><p>开设研发/认证/运维专项资金账户，确保专款专用</p></li>
+                            <li><i class="fas fa-circle"></i><p>专项资金流向实时监控，满足企业精细化管理需求</p></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4 class="sub-sub-title" style="margin-top: 2rem;">资金调拨三大便利点</h4>
+                <div class="grid-3">
+                    <div class="card card-green">
+                        <p class="text-center"><b style="font-size: 1.5rem; color: #00b49f;">01</b></p>
+                        <p class="text-center" style="margin-top: 1rem; line-height: 1.6;">外债境外放款额度内凭支付指令直接办理，无需事前审批，大幅提升资金调拨效率</p>
+                    </div>
+                    <div class="card card-green">
+                        <p class="text-center"><b style="font-size: 1.5rem; color: #00b49f;">02</b></p>
+                        <p class="text-center" style="margin-top: 1rem; line-height: 1.6;">主办企业代境外成员企业办理集中收付，简化流程，降低操作成本</p>
+                    </div>
+                    <div class="card card-green">
+                        <p class="text-center"><b style="font-size: 1.5rem; color: #00b49f;">03</b></p>
+                        <p class="text-center" style="margin-top: 1rem; line-height: 1.6;">额度部分归集，保留单个企业财务自由度，灵活配置，兼顾效率与自主</p>
+                    </div>
+                </div>
+
+                <h4 class="sub-sub-title" style="margin-top: 2rem;">功能层级架构（顶层入口：数字化结算与资金管理模块）</h4>
+                <div class="layer-box">
+                    <div class="layer-title">【基础层】- 技术支撑板块</div>
+                    <p style="line-height: 1.7;">账户基础：汇丰银行全球网点本地账户+多币种大额专属账户 | 系统对接：企业财务系统银企直联+汇丰银行全球支付网络 | 技术架构：微服务架构+API接口技术 | 安全合规：加密传输+智能合规审核+风险管控</p>
+                </div>
+                <div class="layer-box">
+                    <div class="layer-title">【核心功能层】- 4大核心子板块</div>
+                    <p style="line-height: 1.7;">多币种大额结算：主流/小币种大额直接结算+专属通道+汇兑成本优化 | 银企直联结算：多场景线上一键结算+纸质单据替代+时效压缩 | 风电定制资金池：跨境资金实时归集+自动调拨+闲置资金增值 | 产业链资金管理：自动化分账+专项资金账户+专款专用+实时监控</p>
+                </div>
+                <div class="layer-box layer-box-green">
+                    <div class="layer-title layer-title-green">【融合功能层】- 动态汇率风险管理</div>
+                    <p style="line-height: 1.7;">汇率工具：NDF+外汇期货+分阶段套保方案 | 智能服务：小币种汇率预警+智能对冲建议 | 联动操作：结算账户直连+"结算+锁汇"一键完成</p>
+                </div>
+            </div>
+
+            <div class="card card-green" style="margin-bottom: 2.5rem;">
+                <h3 class="sub-title" style="color: #009a88;"><i class="fas fa-chart-line"></i>融合功能 - 动态汇率风险管理</h3>
+                <p style="margin-bottom: 2rem; line-height: 1.8;">深度联动数字化结算模块，适配风电企业大额长周期结算特点，实现汇率风险全流程管控，小币种汇率精准避险。</p>
+                <div class="grid-2">
+                    <div>
+                        <h4 class="sub-sub-title" style="color: #009a88;">核心能力</h4>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>7×24小时追踪目标币种汇率波动，实时监控无死角</p></li>
+                            <li><i class="fas fa-circle"></i><p>企业自定义汇率阈值，触及预设值自动执行对冲指令，无需人工干预</p></li>
+                            <li><i class="fas fa-circle"></i><p>整合NDF/外汇期货工具提供分阶段套保方案，NDF支持差额交割，无需本金</p></li>
+                            <li><i class="fas fa-circle"></i><p>小币种汇率专属预警机制，针对风电出海重点区域小币种定制避险策略</p></li>
+                            <li><i class="fas fa-circle"></i><p>结算账户直连避险模块，实现“结算+锁汇”一键完成，从源头规避汇兑损失</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box layer-box-green" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                        <p class="text-center"><b style="font-size: 1.2rem; color: #0f52ba;">核心联动价值</b></p>
+                        <p class="text-center text-green" style="margin: 1.5rem 0; font-size: 1.3rem; font-weight: 600;">结算-调拨-监控-汇率避险 全流程数字化</p>
+                        <p class="text-center" style="line-height: 1.7;">为风电企业海外大额长周期订单锁定汇兑收益，降低汇率波动对项目利润的影响</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="sub-title"><i class="fas fa-leaf"></i>CORE FUNCTION 02 - ESG关联融资体系</h3>
+                <p style="margin-bottom: 2rem; color: #718096; line-height: 1.8;">紧扣全球双碳政策，打造风电行业专属ESG评级体系，实现ESG表现与融资成本直接挂钩，构建全产业链绿色融资产品矩阵，助力风电企业绿色发展。</p>
+                
+                <h4 class="sub-sub-title">绿色融资产品矩阵架构</h4>
+                <div class="grid-3">
+                    <div class="layer-box layer-box-green">
+                        <div class="layer-title layer-title-green">评级定价层</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>风电行业定制化ESG评级模型智能评估</p></li>
+                            <li><i class="fas fa-circle"></i><p>ESG表现差异化融资成本阶梯式定价</p></li>
+                            <li><i class="fas fa-circle"></i><p>ESG指标挂钩利率动态调整机制</p></li>
+                            <li><i class="fas fa-circle"></i><p>引入第三方权威ESG认证机制</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box" style="border-color: rgba(15,82,186,0.2);">
+                        <div class="layer-title" style="color: #0f52ba; border-bottom-color: rgba(15,82,186,0.2);">增值服务层</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>国际ESG合规咨询：海外项目ESG要求解读、认证流程指导、ESG报告编制</p></li>
+                            <li><i class="fas fa-circle"></i><p>融资联动服务：通过国际ESG认证后融资额度提升、利率进一步优惠</p></li>
+                            <li><i class="fas fa-circle"></i><p>ESG评级提升指导：定制化ESG整改方案，助力企业评级升级</p></li>
+                            <li><i class="fas fa-circle"></i><p>绿色产业资源对接：链接风电行业绿色产业链上下游优质资源</p></li>
+                        </ul>
+                    </div>
+                    <div class="layer-box" style="border-color: rgba(15,82,186,0.2);">
+                        <div class="layer-title" style="color: #0f52ba; border-bottom-color: rgba(15,82,186,0.2);">产品服务层</div>
+                        <ul class="func-list">
+                            <li><i class="fas fa-circle"></i><p>绿色信贷：专项风电出海项目低息贷款，额度最高覆盖项目总投80%</p></li>
+                            <li><i class="fas fa-circle"></i><p>绿色债券：协助发行跨境绿色债券，降低海外融资成本</p></li>
+                            <li><i class="fas fa-circle"></i><p>跨境供应链融资：基于风电产业链核心企业的上下游配套融资</p></li>
+                            <li><i class="fas fa-circle"></i><p>海外项目保险：联动国际保险机构，提供项目全周期风险保障</p></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4 class="sub-sub-title" style="margin-top: 2rem;">风电行业专属ESG评级维度</h4>
+                <div class="grid-3">
+                    <div class="card card-blue">
+                        <p class="text-center text-blue" style="font-weight: 600; font-size: 15px;">环境维度（E）</p>
+                        <ul class="func-list" style="margin-top: 1rem;">
+                            <li><i class="fas fa-circle"></i><p>风电项目碳排放强度</p></li>
+                            <li><i class="fas fa-circle"></i><p>设备节能与环保设计</p></li>
+                            <li><i class="fas fa-circle"></i><p>海外项目生态保护措施</p></li>
+                            <li><i class="fas fa-circle"></i><p>固废与废水处理方案</p></li>
+                        </ul>
+                    </div>
+                    <div class="card card-blue">
+                        <p class="text-center text-blue" style="font-weight: 600; font-size: 15px;">社会维度（S）</p>
+                        <ul class="func-list" style="margin-top: 1rem;">
+                            <li><i class="fas fa-circle"></i><p>海外当地员工雇佣比例</p></li>
+                            <li><i class="fas fa-circle"></i><p>安全生产与职业健康</p></li>
+                            <li><i class="fas fa-circle"></i><p>社区公益与本地化融合</p></li>
+                            <li><i class="fas fa-circle"></i><p>供应链社会责任管理</p></li>
+                        </ul>
+                    </div>
+                    <div class="card card-blue">
+                        <p class="text-center text-blue" style="font-weight: 600; font-size: 15px;">治理维度（G）</p>
+                        <ul class="func-list" style="margin-top: 1rem;">
+                            <li><i class="fas fa-circle"></i><p>公司治理结构与合规</p></li>
+                            <li><i class="fas fa-circle"></i><p>跨境经营透明化管理</p></li>
+                            <li><i class="fas fa-circle"></i><p>股东与利益相关方保护</p></li>
+                            <li><i class="fas fa-circle"></i><p>反商业贿赂与反腐败</p></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4 class="sub-sub-title" style="margin-top: 2rem;">ESG融资成本差异化定价标准</h4>
+                <div class="layer-box">
+                    <div class="layer-title">评级与融资利率挂钩表</div>
+                    <p style="line-height: 1.8; margin-top: 1rem;">
+                        SSS级（卓越）：基础利率下浮30% &nbsp;&nbsp;|&nbsp;&nbsp; SS级（优秀）：基础利率下浮20% &nbsp;&nbsp;|&nbsp;&nbsp; S级（良好）：基础利率下浮10%<br>
+                        A级（合格）：执行基础利率 &nbsp;&nbsp;|&nbsp;&nbsp; B级（待改进）：基础利率上浮5% &nbsp;&nbsp;|&nbsp;&nbsp; C级（不合格）：暂停新增融资
+                    </p>
+                    <p style="line-height: 1.8; margin-top: 0.5rem; color: #00b49f; font-weight: 500;">
+                        注：基础利率参照同期LPR+跨境项目风险调整系数，风电行业专属基础利率较普通行业低5%-8%。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 落地场景 -->
+    <section class="section" id="scene" style="background: rgba(15,82,186,0.02);">
+        <div class="container">
+            <h2 class="section-title">核心落地场景</h2>
+            <div class="grid-3">
+                <div class="scene-card">
+                    <h4><i class="fas fa-wind-turbine"></i>海外风电项目建设</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>跨境项目资本金跨境调拨与结算</p></li>
+                        <li><i class="fas fa-circle"></i><p>设备采购多币种大额付款专属通道</p></li>
+                        <li><i class="fas fa-circle"></i><p>项目建设阶段ESG专项融资支持</p></li>
+                        <li><i class="fas fa-circle"></i><p>汇率锁定规避建设期汇率波动风险</p></li>
+                    </ul>
+                </div>
+                <div class="scene-card scene-card-green">
+                    <h4><i class="fas fa-truck"></i>风电设备出口贸易</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>出口收汇快速结汇，到账时效T+0</p></li>
+                        <li><i class="fas fa-circle"></i><p>多币种结算账户，免中间行手续费</p></li>
+                        <li><i class="fas fa-circle"></i><p>出口信用保险+融资联动服务</p></li>
+                        <li><i class="fas fa-circle"></i><p>供应链上下游分账自动化管理</p></li>
+                    </ul>
+                </div>
+                <div class="scene-card">
+                    <h4><i class="fas fa-building"></i>海外子公司运营管理</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>全球资金池归集，提高资金使用效率</p></li>
+                        <li><i class="fas fa-circle"></i><p>子公司日常运营资金跨境调拨</p></li>
+                        <li><i class="fas fa-circle"></i><p>海外员工薪酬本地化发放服务</p></li>
+                        <li><i class="fas fa-circle"></i><p>运营阶段ESG评级持续优化指导</p></li>
+                    </ul>
+                </div>
+                <div class="scene-card scene-card-green">
+                    <h4><i class="fas fa-handshake"></i>跨境产业链合作</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>跨境合作项目资金共管账户</p></li>
+                        <li><i class="fas fa-circle"></i><p>产业链核心企业批量结算服务</p></li>
+                        <li><i class="fas fa-circle"></i><p>上下游企业配套ESG融资支持</p></li>
+                        <li><i class="fas fa-circle"></i><p>跨境合作项目汇率风险共担方案</p></li>
+                    </ul>
+                </div>
+                <div class="scene-card">
+                    <h4><i class="fas fa-chart-pie"></i>风电资产海外证券化</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>资产证券化资金跨境结算</p></li>
+                        <li><i class="fas fa-circle"></i><p>绿色资产评级与融资对接</p></li>
+                        <li><i class="fas fa-circle"></i><p>资产收益款跨境归集与分配</p></li>
+                        <li><i class="fas fa-circle"></i><p>全流程合规与资金监管服务</p></li>
+                    </ul>
+                </div>
+                <div class="scene-card scene-card-green">
+                    <h4><i class="fas fa-shield-halved"></i>海外项目风险对冲</h4>
+                    <ul class="func-list">
+                        <li><i class="fas fa-circle"></i><p>汇率、利率双维度风险对冲</p></li>
+                        <li><i class="fas fa-circle"></i><p>海外政治风险与市场风险保障</p></li>
+                        <li><i class="fas fa-circle"></i><p>项目现金流波动风险管理</p></li>
+                        <li><i class="fas fa-circle"></i><p>定制化跨境风险对冲方案</p></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="case-box">
+                <h4 class="case-title"><i class="fas fa-file-text"></i>典型案例</h4>
+                <div class="grid-2" style="gap: 1.5rem;">
+                    <div>
+                        <p style="font-weight: 600; color: #0f52ba; margin-bottom: 0.5rem;">案例1：某风电企业东南亚项目建设</p>
+                        <p style="line-height: 1.7; color: #2d3748;">通过风汇通多币种结算账户完成5亿元设备采购跨境付款，节省中间行手续费80余万元；同步办理ESG专项融资3亿元，利率下浮20%，每年节省融资成本600余万元；锁定3年期汇率，规避汇率波动损失超2000万元。</p>
+                    </div>
+                    <div>
+                        <p style="font-weight: 600; color: #0f52ba; margin-bottom: 0.5rem;">案例2：某风电设备出口企业欧洲市场布局</p>
+                        <p style="line-height: 1.7; color: #2d3748;">依托风汇通出口收汇专属通道，实现欧元收汇T+0结汇，资金到账效率提升3倍；开通7个币种结算账户，覆盖欧洲主要市场；配套供应链融资服务，为上下游12家企业提供融资支持，整体产业链资金效率提升40%。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <    <!-- 智能测算模块 -->
+    <section class="calculate section" id="calculate">
+        <div class="container">
+            <h2 class="section-title">智能金融测算</h2>
+            <div class="grid-2">
+                <!-- 汇率避险成本测算 - 新增多币种+分组 -->
+                <div class="card">
+                    <h3 class="sub-title" style="font-size: 1.3rem;"><i class="fas fa-chart-line"></i>汇率避险成本测算</h3>
+                    <form id="rateForm">
+                        <div class="form-group">
+                            <label for="currency">结算币种（按区域分类）</label>
+                            <select id="currency" required>
+                                <option value="">--请选择币种--</option>
+                                <optgroup label="【主流币种】- 欧美/大洋洲">
+                                    <option value="USD">美元（USD）</option>
+                                    <option value="EUR">欧元（EUR）</option>
+                                    <option value="GBP">英镑（GBP）</option>
+                                    <option value="AUD">澳元（AUD）</option>
+                                    <option value="JPY">日元（JPY）</option>
+                                </optgroup>
+                                <optgroup label="【亚洲小币种】- 东南亚核心市场">
+                                    <option value="THB">泰铢（THB）- 泰国</option>
+                                    <option value="SGD">新加坡元（SGD）- 新加坡</option>
+                                    <option value="MYR">马来西亚林吉特（MYR）- 马来西亚</option>
+                                    <option value="IDR">印尼盾（IDR）- 印度尼西亚</option>
+                                    <option value="VND">越南盾（VND）- 越南</option>
+                                </optgroup>
+                                <optgroup label="【中东小币种】- 海湾国家">
+                                    <option value="AED">阿联酋迪拉姆（AED）- 阿联酋</option>
+                                    <option value="SAR">沙特里亚尔（SAR）- 沙特</option>
+                                    <option value="QAR">卡塔尔里亚尔（QAR）- 卡塔尔</option>
+                                </optgroup>
+                                <optgroup label="【拉美小币种】- 南美风电市场">
+                                    <option value="MXN">墨西哥比索（MXN）- 墨西哥</option>
+                                    <option value="BRL">巴西雷亚尔（BRL）- 巴西</option>
+                                    <option value="CLP">智利比索（CLP）- 智利</option>
+                                </optgroup>
+                                <optgroup label="【非洲小币种】- 南部非洲">
+                                    <option value="ZAR">南非兰特（ZAR）- 南非</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rateAmount">结算金额（万元）</label>
+                            <input type="number" id="rateAmount" min="0" step="0.01" required placeholder="请输入结算金额">
+                        </div>
+                        <div class="form-group">
+                            <label for="hedgeType">避险工具类型</label>
+                            <select id="hedgeType" required>
+                                <option value="">--请选择--</option>
+                                <option value="NDF">NDF（差额交割，无需本金）</option>
+                                <option value="FUTURE">外汇期货（标准化合约）</option>
+                                <option value="COMBO">分阶段套保组合（推荐长周期）</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">立即测算</button>
+                    </form>
+                    <!-- 汇率测算结果 -->
+                    <div class="result-box" id="rateResult">
+                        <h4 style="color: #084b8a; margin-bottom: 1rem; font-size: 1.2rem;">测算结果</h4>
+                        <div class="result-item"><strong>结算币种类型：</strong><span id="resCurrencyType"></span></div>
+                        <div class="result-item"><strong>所选避险工具：</strong><span id="resHedgeType"></span></div>
+                        <div class="result-item"><strong>避险手续费率：</strong><span id="resRateFee"></span></div>
+                        <div class="result-item"><strong>避险总成本：</strong><span class="highlight" id="resRateCost"></span> 万元</div>
+                        <div class="result-item"><strong>推荐优化方案：</strong><span id="resRateScheme"></span></div>
+                    </div>
+                </div>
+                <!-- ESG融资成本测算 - 完全保留原有内容 -->
+                <div class="card">
+                    <h3 class="sub-title" style="font-size: 1.3rem;"><i class="fas fa-leaf"></i>ESG融资成本测算</h3>
+                    <form id="esgForm">
+                        <div class="form-group">
+                            <label for="esgGrade">企业ESG评级</label>
+                            <select id="esgGrade" required>
+                                <option value="">--请选择--</option>
+                                <option value="A">A级（优秀，90-100分）</option>
+                                <option value="B">B级（良好，70-89分）</option>
+                                <option value="C">C级（基础，0-69分）</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="esgAmount">融资规模（亿元）</label>
+                            <input type="number" id="esgAmount" min="0" step="0.01" required placeholder="请输入融资规模">
+                        </div>
+                        <div class="form-group">
+                            <label for="esgCycle">融资期限（年）</label>
+                            <input type="number" id="esgCycle" min="1" max="10" required placeholder="请输入融资期限">
+                        </div>
+                        <button type="submit" class="btn btn-green">立即测算</button>
+                    </form>
+                    <!-- ESG测算结果 -->
+                    <div class="result-box" id="esgResult">
+                        <h4 style="color: #084b8a; margin-bottom: 1rem; font-size: 1.2rem;">测算结果</h4>
+                        <div class="result-item"><strong>ESG评级对应利率：</strong><span id="resEsgRate"></span></div>
+                        <div class="result-item"><strong>年利息支出：</strong><span id="resEsgYearInterest"></span> 万元</div>
+                        <div class="result-item"><strong>总利息支出：</strong><span id="resEsgTotalInterest"></span> 万元</div>
+                        <div class="result-item"><strong>较基准利率节省：</strong><span class="highlight" id="resEsgSave"></span> 万元</div>
+                        <div class="result-item"><strong>额外融资权益：</strong><span id="resEsgRight"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 需求对接模块 - 含下拉框颜色美化 -->
+    <section class="contact section" id="contact">
+        <div class="container">
+            <h2 class="section-title">企业需求对接</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="sub-title" style="color: #fff;"><i class="fas fa-headset"></i>专属客户经理对接</h3>
+                    <p style="margin-bottom: 2rem; opacity: 0.9;">填写企业需求信息，我们将在1-2个工作日内安排专业风电行业金融客户经理与您联系，为您定制专属跨境金融解决方案</p>
+                    <ul style="margin-bottom: 2rem;">
+                        <li style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;"><i class="fas fa-check"></i> 一对一定制化方案设计</li>
+                        <li style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;"><i class="fas fa-check"></i> 风电行业专属金融政策解读</li>
+                        <li style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;"><i class="fas fa-check"></i> 海外项目合规全程指导</li>
+                        <li style="display: flex; align-items: center; gap: 0.8rem;"><i class="fas fa-check"></i> 7×24小时专属金融服务</li>
+                    </ul>
+                    <p style="opacity: 0.8;"><i class="fas fa-shield-alt"></i> 信息安全保障，您的企业信息仅用于金融服务对接</p>
+                </div>
+                <div class="card">
+                    <!-- 新增下拉框颜色样式 -->
+                    <style>
+                        /* 企业业务类型下拉框样式 */
+                        #businessType {
+                            width: 100%;
+                            padding: 0.8rem 1.2rem;
+                            border: 1px solid #e0e6ed;
+                            border-radius: 8px;
+                            background-color: #5F93DB;
+                            color: #e6ebf3;
+                            font-size: 14px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%230f52ba'%3E%3Cpath d='M0 0l6 6 6-6z'/%3E%3C/svg%3E");
+                            background-repeat: no-repeat;
+                            background-position: right 1rem center;
+                        }
+                        #businessType:focus {
+                            border-color: #00b49f;
+                            box-shadow: 0 0 0 3px rgba(0,180,159,0.1);
+                        }
+                        #businessType option[value=""] {
+                            color: #94a3b8;
+                        }
+                        #businessType option {
+                            background-color: #ffffff;
+                            color: #2d3748;
+                            padding: 8px 12px;
+                        }
+                        #businessType option:hover,
+                        #businessType option:checked {
+                            background-color: #f0fcf9;
+                            color: #5F93DB;
+                            font-weight: 500;
+                        }
+                    </style>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="companyName">企业名称</label>
+                            <input type="text" id="companyName" required placeholder="请输入企业全称">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactPerson">联系人</label>
+                            <input type="text" id="contactPerson" required placeholder="请输入联系人姓名">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactPhone">联系电话</label>
+                            <input type="tel" id="contactPhone" required placeholder="请输入手机号">
+                        </div>
+                        <div class="form-group">
+                            <label for="businessType">企业业务类型</label>
+                            <select id="businessType" required>
+                                <option value="">--请选择--</option>
+                                <option value="machine">风电整机制造</option>
+                                <option value="part">风电零部件生产</option>
+                                <option value="operation">风电运维服务</option>
+                                <option value="other">风电产业链其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="demandDesc">核心金融需求</label>
+                            <textarea id="demandDesc" placeholder="请详细描述您的跨境金融需求，如：整机出口结算、ESG项目融资、小币种汇率避险等"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-green" style="width: 100%;">提交需求</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- 底部 - 完全保留原有内容 -->
+    <footer class="footer">
+        <div class="container">
+            <p>风汇通 © 2026 风电出海跨境金融一体化解决方案</p>
+            <p>依托汇丰银行全球50+国家网络优势 | 响应国家跨境贸易高质量发展号召</p>
+            <p>绿色金融 · 全币种汇率避险 · 全球资金管理 · ESG融资</p>
+            <p style="margin-top: 2rem; opacity: 0.7;">本网页为金融服务展示平台，具体金融产品与服务以银行官方公告为准</p>
+        </div>
+    </footer>
+
+    <!-- 提交成功弹窗 - 完全保留原有内容 -->
+    <div class="modal-mask" id="modal">
+        <div class="modal-box">
+            <i class="fas fa-check-circle"></i>
+            <h3>需求提交成功！</h3>
+            <p>我们已收到您的企业需求，专业客户经理将在1-2个工作日内与您电话联系，为您定制专属风电出海跨境金融解决方案。</p>
+            <button class="btn" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 汇率测算基础数据 - 保留原有所有币种+新增12个币种，按区域分类配置费率和方案
+        const rateData = {
+            // 主流币种 - 原有
+            USD: { type: "主流币种（美元）", fee: { NDF: "0.1%", FUTURE: "0.15%", COMBO: "0.08%" }, scheme: "直接锁汇，结算+锁汇一键完成，联动全球资金池" },
+            EUR: { type: "主流币种（欧元）", fee: { NDF: "0.12%", FUTURE: "0.18%", COMBO: "0.1%" }, scheme: "直接锁汇，闲置资金联动智能化理财增值" },
+            // 主流币种 - 新增
+            GBP: { type: "主流币种（英镑）", fee: { NDF: "0.13%", FUTURE: "0.19%", COMBO: "0.11%" }, scheme: "分阶段套保，匹配欧洲风电项目长周期结算" },
+            AUD: { type: "主流币种（澳元）", fee: { NDF: "0.14%", FUTURE: "0.20%", COMBO: "0.12%" }, scheme: "锁汇+理财联动，适配大洋洲风电设备采购" },
+            JPY: { type: "主流币种（日元）", fee: { NDF: "0.15%", FUTURE: "0.21%", COMBO: "0.13%" }, scheme: "小额多次锁汇，匹配日韩零部件跨境采购" },
+            // 亚洲小币种 - 原有
+            THB: { type: "亚洲小币种（泰铢）", fee: { NDF: "0.3%", FUTURE: "0.4%", COMBO: "0.25%" }, scheme: "NDF+分阶段套保，小币种汇率7×24小时预警" },
+            // 亚洲小币种 - 新增
+            SGD: { type: "亚洲小币种（新加坡元）", fee: { NDF: "0.2%", FUTURE: "0.28%", COMBO: "0.18%" }, scheme: "跨境资金池直连，实现东南亚区域资金调拨+锁汇" },
+            MYR: { type: "亚洲小币种（马来西亚林吉特）", fee: { NDF: "0.32%", FUTURE: "0.42%", COMBO: "0.27%" }, scheme: "NDF+自动对冲，适配马来西亚风电项目建设回款" },
+            IDR: { type: "亚洲小币种（印尼盾）", fee: { NDF: "0.35%", FUTURE: "0.45%", COMBO: "0.30%" }, scheme: "分阶段套保，规避印尼盾大幅波动风险，专款专用" },
+            VND: { type: "亚洲小币种（越南盾）", fee: { NDF: "0.33%", FUTURE: "0.43%", COMBO: "0.28%" }, scheme: "小币种直连对冲，匹配越南风电零部件生产结算" },
+            // 中东小币种 - 原有
+            AED: { type: "中东小币种（阿联酋迪拉姆）", fee: { NDF: "0.25%", FUTURE: "0.35%", COMBO: "0.2%" }, scheme: "分阶段套保，联动中东项目专项资金账户" },
+            // 中东小币种 - 新增
+            SAR: { type: "中东小币种（沙特里亚尔）", fee: { NDF: "0.26%", FUTURE: "0.36%", COMBO: "0.21%" }, scheme: "锁汇+项目资金监控，适配沙特风电电站建设" },
+            QAR: { type: "中东小币种（卡塔尔里亚尔）", fee: { NDF: "0.27%", FUTURE: "0.37%", COMBO: "0.22%" }, scheme: "NDF+差额交割，匹配卡塔尔风电项目大额结算" },
+            // 拉美小币种 - 原有
+            MXN: { type: "拉美小币种（墨西哥比索）", fee: { NDF: "0.3%", FUTURE: "0.4%", COMBO: "0.25%" }, scheme: "NDF+汇率自动对冲，无需本金交割，适配拉美长周期项目" },
+            // 拉美小币种 - 新增
+            BRL: { type: "拉美小币种（巴西雷亚尔）", fee: { NDF: "0.34%", FUTURE: "0.44%", COMBO: "0.29%" }, scheme: "分阶段套保+汇率预警，规避巴西外汇市场波动风险" },
+            CLP: { type: "拉美小币种（智利比索）", fee: { NDF: "0.32%", FUTURE: "0.42%", COMBO: "0.27%" }, scheme: "小额锁汇，匹配智利风电设备出口零散结算" },
+            // 非洲小币种 - 新增
+            ZAR: { type: "非洲小币种（南非兰特）", fee: { NDF: "0.31%", FUTURE: "0.41%", COMBO: "0.26%" }, scheme: "NDF+跨境资金池，适配南非风电运维服务结算" }
+        };
+        // ESG融资基础数据 - 完全保留原有内容，无任何修改
+        const esgData = {
+            A: { rate: "LPR+70BP（4.15%）", down: "30BP", right: "融资额度提升至项目70%+国际ESG合规咨询+海外项目利率额外优惠" },
+            B: { rate: "LPR+90BP（4.35%）", down: "10BP", right: "融资额度提升至项目60%+ESG评级提升辅导+费率减免" },
+            C: { rate: "LPR+100BP（4.45%）", down: "0BP", right: "定制化融资方案+ESG整改指导+达标后利率下调" }
+        };
+        const baseLPR = 0.0445; // 基础利率4.45% - 保留原有
+
+        // 汇率避险测算表单提交 - 逻辑不变，适配新增币种
+        const rateForm = document.getElementById('rateForm');
+        const rateResult = document.getElementById('rateResult');
+        rateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currency = document.getElementById('currency').value;
+            const amount = parseFloat(document.getElementById('rateAmount').value);
+            const hedgeType = document.getElementById('hedgeType').value;
+            
+            // 获取对应数据（兼容所有新旧币种）
+            const cur = rateData[currency];
+            const feeRate = cur.fee[hedgeType];
+            const cost = (amount * parseFloat(feeRate) / 100).toFixed(2);
+            const hedgeName = hedgeType === "NDF" ? "NDF（差额交割，无需本金）" : hedgeType === "FUTURE" ? "外汇期货（标准化合约）" : "分阶段套保组合（风电长周期推荐）";
+            const currencyName = cur.type;
+            
+            // 渲染结果
+            document.getElementById('resCurrencyType').innerText = currencyName;
+            document.getElementById('resHedgeType').innerText = hedgeName;
+            document.getElementById('resRateFee').innerText = feeRate + "/笔（风电企业专属费率）";
+            document.getElementById('resRateCost').innerText = cost;
+            document.getElementById('resRateScheme').innerText = cur.scheme;
+            
+            // 显示结果
+            rateResult.classList.add('show');
+        });
+
+        // ESG融资成本测算表单提交 - 完全保留原有代码，无任何修改
+        const esgForm = document.getElementById('esgForm');
+        const esgResult = document.getElementById('esgResult');
+        esgForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const grade = document.getElementById('esgGrade').value;
+            const amount = parseFloat(document.getElementById('esgAmount').value) * 10000; // 亿元转万元
+            const cycle = parseFloat(document.getElementById('esgCycle').value);
+            
+            // 获取对应数据
+            const esg = esgData[grade];
+            const esgRate = parseFloat(esg.rate.match(/\d+\.\d+/)[0]) / 100;
+            const downBP = parseInt(esg.down);
+            // 计算利息
+            const yearInterest = (amount * esgRate).toFixed(2);
+            const totalInterest = (yearInterest * cycle).toFixed(2);
+            const saveInterest = (amount * (baseLPR - esgRate) * cycle).toFixed(2);
+            const gradeName = grade === "A" ? "A级（优秀）" : grade === "B" ? "B级（良好）" : "C级（基础）";
+            
+            // 渲染结果
+            document.getElementById('resEsgRate').innerText = esg.rate + "（" + gradeName + "）";
+            document.getElementById('resEsgYearInterest').innerText = yearInterest;
+            document.getElementById('resEsgTotalInterest').innerText = totalInterest;
+            document.getElementById('resEsgSave').innerText = saveInterest === "0.00" ? "0" : saveInterest;
+            document.getElementById('resEsgRight').innerText = esg.right;
+            
+            // 显示结果
+            esgResult.classList.add('show');
+        });
+
+        // 需求对接表单提交 - 完全保留原有代码
+        const contactForm = document.getElementById('contactForm');
+        const modal = document.getElementById('modal');
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            modal.classList.add('show');
+            this.reset();
+            // 隐藏测算结果
+            rateResult.classList.remove('show');
+            esgResult.classList.remove('show');
+        });
+
+        // 关闭弹窗 - 完全保留原有代码
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // 平滑滚动 - 完全保留原有代码
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 页面滚动导航样式优化 - 完全保留原有代码
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 50) {
+                header.style.padding = "0.8rem 2rem";
+                header.style.backgroundColor = "#063966";
+            } else {
+                header.style.padding = "1rem 2rem";
+                header.style.backgroundColor = "#084b8a";
+            }
+        });
+    </script>
+</body>
+</html>
